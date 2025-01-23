@@ -9,7 +9,7 @@ public class RBTree {
         RED, BLACK
     }
 
-    private static class Node implements Comparable {
+    public static class Node implements Comparable {
         int value;
         Color color;
         Node left, right, parent;
@@ -176,18 +176,5 @@ public class RBTree {
         if (newChild != null) {
             newChild.parent = parent;
         }
-    }
-
-    public static void main(String[] args) {
-        RBTree tree = new RBTree();
-
-        tree.insertNode(new Node(15));
-        tree.insertNode(new Node(9));
-        tree.insertNode(new Node(17));
-        tree.insertNode(new Node(73));
-        tree.insertNode(new Node(23));
-        tree.insertNode(new Node(24));
-        System.out.println(tree.root.value);
-        System.out.println(tree.root.color);
     }
 }
