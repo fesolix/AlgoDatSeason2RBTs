@@ -1,4 +1,5 @@
 package org.example;
+import java.io.*;
 
 interface Comparable {
     public int compareTo(Object x);
@@ -176,5 +177,68 @@ public class RBTree {
         if (newChild != null) {
             newChild.parent = parent;
         }
+    }
+
+    private static Object[][] nodeParents = new Object[10000][3];
+    private void inorder(Node n) {
+        int i = 0;
+        if (n.left != null) inorder(n.left);
+        if (n.parent != null) {
+
+            while (nodeParents[i][0] != null) {
+                i++;
+            }
+            nodeParents[i][0] = n.value;
+            nodeParents[i][1] = n.color;
+            nodeParents[i][2] = n.parent.value;
+
+        }
+        if (n.right != null) inorder(n.right);
+
+    }
+    public void printDOT(String file) throws IOException {
+        nodeParents = new Object[10000][3];
+        String startText = "digraph G {\n" +
+                "\tgraph [ratio=.48];\n" +
+                "\tnode [style=filled, color=black, shape=circle, width=.6 \n" +
+                "\t\tfontname=Helvetica, fontweight=bold, fontcolor=white, \n" +
+                "\t\tfontsize=24, fixedsize=true];\n" +
+                "\t\n\n";
+        String order = "  ";
+        String redDots = "  ";
+        String redText =
+                "\t\n" +
+                "\t[fillcolor=red];\n" +
+                "\n";
+        String connectDots = "";
+        String endText = "\n" + "}";
+
+
+        // connect inOrder
+        inorder(root);
+        int i = 0;
+
+        while (nodeParents[i][0] != null) {
+            if (nodeParents[i][1] == Color.RED) redDots = redDots.concat(nodeParents[i][0].toString() + ", ");
+            connectDots = connectDots.concat(nodeParents[i][2] + " -> " + nodeParents[i][0] + "; \n");
+            order = order.concat(nodeParents[i][0] + ", ");
+            i++;
+        }
+
+        redDots = redDots.substring(0, redDots.length()-2);
+        order = order.substring(0, order.length() -2) + ";\n\n";
+        String input = startText.concat(order + redDots + redText + connectDots + endText);
+        if (redDots.isEmpty()) input = startText.concat(root.value + ";" + endText);
+
+        File out = new File(file);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(out))) {
+
+            writer.write(input);
+            writer.flush();
+        }
+
+
+
+
     }
 }
