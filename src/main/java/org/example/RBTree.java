@@ -11,6 +11,7 @@ public class RBTree<T extends Comparable<T>> {
         RED, BLACK
     }
 
+
     public static class Node<T extends Comparable<T>> {
         T value;
         Color color;
