@@ -59,84 +59,91 @@ public class RBTree {
     }
 
     public void fixRedBlackPropertiesAfterInsert(Node newNode) {
-        // Fall 1: Der neue Knoten ist die Wurzel
-        // Fall 2: Der Vater ist die Wurzel und rot
+        // 1) If newNode is the root, just color it black
         if (newNode == root) {
             newNode.color = Color.BLACK;
             return;
         }
 
-        Node grandParent = newNode.parent.parent;
-        if (grandParent == null) {
+        // 2) If newNode has no parent, it is effectively the root
+        if (newNode.parent == null) {
+            root = newNode;
+            newNode.color = Color.BLACK;
             return;
         }
 
-        // Fall 3: Vater und Onkelknoten sind rot
-        // Bestimmen, ob der Vater links oder rechts vom Großvater ist
-        if (newNode.parent == grandParent.left) {
-            Node uncle = grandParent.right;
-
-            // Fall A: Onkel ist rot => Recolor und höher prüfen
-            if (uncle != null && uncle.color == Color.RED) {
-                newNode.parent.color = Color.BLACK;
-                uncle.color = Color.BLACK;
-                grandParent.color = Color.RED;
-                fixRedBlackPropertiesAfterInsert(grandParent);
-            }
-            // Fall B: Onkel ist schwarz
-            else {
-                // innerer Enkel => Linksdrehung beim Vater
-                if (newNode == newNode.parent.right) {
-                    rotateLeft(newNode.parent);
-                    // Nach der Rotation ist newNode.parent gewechselt
-                    // Verschiebe Fokus auf das ehemals "linke Kind"
-                    newNode = newNode.left;
-                }
-                // äußerer Enkel => Rechtsdrehung beim Großvater
-                newNode.parent.color = Color.BLACK;
-                grandParent.color = Color.RED;
-                rotateRight(grandParent);
-
-                // Hier kann weiter oben ein Konflikt entstehen:
-                // also rufen wir die Fix-Methode erneut mit dem "hochgedrehten" Knoten auf.
-                // Der "hochgedrehte" Knoten ist jetzt newNode.parent (früher war es newNode).
-                newNode = newNode.parent;
-                if (newNode != null) {
-                    fixRedBlackPropertiesAfterInsert(newNode);
-                }
-            }
-        } else {
-            // Vater ist rechtes Kind vom grandParent
-            Node uncle = grandParent.left;
-
-            // Fall A: Onkel ist rot
-            if (uncle != null && uncle.color == Color.RED) {
-                newNode.parent.color = Color.BLACK;
-                uncle.color = Color.BLACK;
-                grandParent.color = Color.RED;
-                fixRedBlackPropertiesAfterInsert(grandParent);
-            }
-            // Fall B: Onkel ist schwarz
-            else {
-                // innerer Enkel => Rechtsdrehung beim Vater
-                if (newNode == newNode.parent.left) {
-                    rotateRight(newNode.parent);
-                    newNode = newNode.right;
-                }
-                // äußerer Enkel => Linksdrehung beim Großvater
-                newNode.parent.color = Color.BLACK;
-                grandParent.color = Color.RED;
-                rotateLeft(grandParent);
-
-                // Wieder Rekursion, um Konflikte weiter oben zu beseitigen
-                newNode = newNode.parent;
-                if (newNode != null) {
-                    fixRedBlackPropertiesAfterInsert(newNode);
-                }
-            }
+        // 3) If the parent is black, nothing to fix
+        if (newNode.parent.color == Color.BLACK) {
+            root.color = Color.BLACK; // Ensure root is black
+            return;
         }
 
-        // Wurzel am Ende schwarz
+        // Now we know newNode != root and newNode.parent is RED
+        Node parent = newNode.parent;
+        Node grandParent = parent.parent;
+
+        // 4) If there's no grandparent, parent is the root
+        if (grandParent == null) {
+            parent.color = Color.BLACK;
+            root = parent;
+            return;
+        }
+
+        // Determine whether parent is a left child or a right child of grandParent
+        boolean parentIsLeftChild = (parent == grandParent.left);
+        // Uncle is the sibling of parent
+        Node uncle = parentIsLeftChild ? grandParent.right : grandParent.left;
+
+        // (A) If uncle is red => recolor + recurse upward
+        if (uncle != null && uncle.color == Color.RED) {
+            parent.color = Color.BLACK;
+            uncle.color = Color.BLACK;
+            grandParent.color = Color.RED;
+            fixRedBlackPropertiesAfterInsert(grandParent);
+            return;
+        }
+
+        // (B) Uncle is black (or null)
+        // (B1) Inner child => small rotation (parent)
+        if (parentIsLeftChild && newNode == parent.right) {
+            rotateLeft(parent);
+            // After rotation, newNode has changed position
+            newNode = parent;
+            parent = newNode.parent;
+            grandParent = (parent != null) ? parent.parent : null;
+        } else if (!parentIsLeftChild && newNode == parent.left) {
+            rotateRight(parent);
+            newNode = parent;
+            parent = newNode.parent;
+            grandParent = (parent != null) ? parent.parent : null;
+        }
+
+        // (B2) Outer child => rotate at grandParent
+        if (parent == null || grandParent == null) {
+            // If that happens, just make whichever is not null the root and color it black
+            if (parent != null) {
+                root = parent;
+                parent.color = Color.BLACK;
+            } else {
+                root = newNode;
+                newNode.color = Color.BLACK;
+            }
+            return;
+        }
+
+        parent.color = Color.BLACK;
+        grandParent.color = Color.RED;
+
+        if (parentIsLeftChild) {
+            rotateRight(grandParent);
+        } else {
+            rotateLeft(grandParent);
+        }
+
+        // Possibly continue fixing upwards if further conflicts remain
+        fixRedBlackPropertiesAfterInsert(parent);
+
+        // Ensure root is black
         root.color = Color.BLACK;
     }
 
