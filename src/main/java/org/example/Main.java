@@ -12,10 +12,6 @@ class IntComparable implements Comparable {
         this.value = value;
     }
 
-    public int getValue() {
-        return value;
-    }
-
     @Override
     public int compareTo(Object x) {
         return this.value - ((IntComparable) x).value;
@@ -45,22 +41,22 @@ public class Main {
             }
             arrayList.add(num);
             System.out.println("Einfügen: " + num);
-            tree.insertNode(new RBTree.Node(num));
+            //tree.insertNode(new RBTree.Node(num));
 
             //printDot mit variablen Pfad
-            tree.printDOT(pfad + currentDot + ".dot");
-            currentDot++;
+            //tree.printDOT(pfad + currentDot + ".dot");
+            //currentDot++;
         }
 
         // Testcase: (oben tree.insertNode bis currentDot++ auskommentieren)
 
-        //int[] test = {74, 94, 72, 13, 80, 4, 61, 3, 90, 27, 51, 79, 76, 43, 44};
-        //for (int j : test) {
-            //System.out.println(j);
-            //tree.insertNode(new RBTree.Node(j));
-            //tree.printDOT("C:\\Users\\Admin\\Desktop\\DOT\\Tree" + currentDot + ".dot");
+        int[] test = {74, 94, 72, 13, 80, 4, 61, 3, 90, 27, 51, 79, 76, 43, 44};
+        for (int j : test) {
+            System.out.println(j);
+            tree.insertNode(new RBTree.Node(j));
+            tree.printDOT("C:\\Users\\Admin\\Desktop\\DOT\\Tree" + currentDot + ".dot");
             currentDot++;
-        //}
+        }
     }
 }
 

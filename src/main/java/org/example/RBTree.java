@@ -2,7 +2,7 @@ package org.example;
 import java.io.*;
 
 interface Comparable {
-    public int compareTo(Object x);
+    int compareTo(Object x);
 }
 
 public class RBTree {
@@ -61,8 +61,8 @@ public class RBTree {
     public void fixRedBlackPropertiesAfterInsert(Node newNode) {
         // Fall 1: Der neue Knoten ist die Wurzel
         // Fall 2: Der Vater ist die Wurzel und rot
-        if (root.color == Color.RED) {
-            root.color = Color.BLACK;
+        if (newNode == root) {
+            newNode.color = Color.BLACK;
             return;
         }
 
@@ -96,6 +96,14 @@ public class RBTree {
                 newNode.parent.color = Color.BLACK;
                 grandParent.color = Color.RED;
                 rotateRight(grandParent);
+
+                // Hier kann weiter oben ein Konflikt entstehen:
+                // also rufen wir die Fix-Methode erneut mit dem "hochgedrehten" Knoten auf.
+                // Der "hochgedrehte" Knoten ist jetzt newNode.parent (früher war es newNode).
+                newNode = newNode.parent;
+                if (newNode != null) {
+                    fixRedBlackPropertiesAfterInsert(newNode);
+                }
             }
         } else {
             // Vater ist rechtes Kind vom grandParent
@@ -119,23 +127,17 @@ public class RBTree {
                 newNode.parent.color = Color.BLACK;
                 grandParent.color = Color.RED;
                 rotateLeft(grandParent);
+
+                // Wieder Rekursion, um Konflikte weiter oben zu beseitigen
+                newNode = newNode.parent;
+                if (newNode != null) {
+                    fixRedBlackPropertiesAfterInsert(newNode);
+                }
             }
         }
 
-        // Fall 4: Vater ist rot, Onkel ist schwarz, Knoten ist innerer Enkel
-        // Fall 5: Vater ist rt, Onkel ist schwarz, Knoten ist äußerer Enkel
-        if (newNode.parent.color == Color.RED && newNode == newNode.parent.left) {
-            rotateRight(newNode.parent);
-            rotateLeft(newNode.parent.parent);
-
-            newNode.parent.color = Color.BLACK;
-            newNode.parent.parent.color = Color.RED;
-        } else if (newNode.parent.color == Color.RED && newNode == newNode.parent.right) {
-            rotateLeft(newNode.parent.parent);
-
-            newNode.parent.color = Color.BLACK;
-            newNode.parent.parent.color = Color.RED;
-        }
+        // Wurzel am Ende schwarz
+        root.color = Color.BLACK;
     }
 
     private void rotateRight(Node node) {

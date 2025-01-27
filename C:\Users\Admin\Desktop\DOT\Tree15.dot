@@ -1,0 +1,19 @@
+digraph G {
+	graph [ratio=.48];
+	node [style=filled, color=black, shape=circle, width=.6 
+		fontname=Helvetica, fontweight=bold, fontcolor=white, 
+		fontsize=24, fixedsize=true];
+	
+
+  4, 13, 72, 80, 94;
+
+  4, 72, 80	
+	[fillcolor=red];
+
+13 -> 4; 
+74 -> 13; 
+13 -> 72; 
+74 -> 80; 
+80 -> 94; 
+
+}
