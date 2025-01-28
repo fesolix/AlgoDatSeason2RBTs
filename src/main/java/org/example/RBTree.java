@@ -64,17 +64,25 @@ public class RBTree<T extends Comparable<T>> {
         if (node != root && node.parent.color == Color.RED) {
             Node<T> parent = node.parent;
             Node<T> grandParent = parent.parent;
-            if (grandParent == null) { root.color = Color.BLACK; return;}
+
+            // Fall 2: Der Vater ist die Wurzel und rot
+            if (grandParent == null) {
+                root.color = Color.BLACK;
+                return;
+            }
 
             boolean isLeftChild = (parent == grandParent.left);
             Node<T> uncle = isLeftChild ? grandParent.right : grandParent.left;
 
+            // Fall 3: Vater und Onkelknoten sind rot
             if (uncle != null && uncle.color == Color.RED) {
                 parent.color = Color.BLACK;
                 uncle.color = Color.BLACK;
                 grandParent.color = Color.RED;
                 fixRedBlackPropertiesAfterInsert(grandParent);
             } else {
+                // Fall 4: Vater ist rot, Onkel ist schwarz, Knoten ist “innerer Enkel”
+                // Fall 5: Vater ist rot, Onkel ist schwarz, Knoten ist “äußerer Enkel”
                 if (isLeftChild && node == parent.right) {
                     rotateLeft(parent);
                     node = parent;
@@ -94,6 +102,7 @@ public class RBTree<T extends Comparable<T>> {
                 fixRedBlackPropertiesAfterInsert(node);
             }
         }
+        // Fall 1: Der neue Knoten ist die Wurzel
         root.color = Color.BLACK;
     }
 
