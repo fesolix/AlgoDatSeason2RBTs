@@ -61,6 +61,7 @@ public class RBTree<T extends Comparable<T>> {
     }
 
     private void fixRedBlackPropertiesAfterInsert(Node<T> node) {
+        // Fall 2-5
         if (node != root && node.parent.color == Color.RED) {
             Node<T> parent = node.parent;
             Node<T> grandParent = parent.parent;
@@ -81,7 +82,6 @@ public class RBTree<T extends Comparable<T>> {
                 grandParent.color = Color.RED;
                 fixRedBlackPropertiesAfterInsert(grandParent);
             } else {
-                // Fall 4: Vater ist rot, Onkel ist schwarz, Knoten ist “innerer Enkel”
                 // Fall 5: Vater ist rot, Onkel ist schwarz, Knoten ist “äußerer Enkel”
                 if (isLeftChild && node == parent.right) {
                     rotateLeft(parent);
@@ -92,6 +92,7 @@ public class RBTree<T extends Comparable<T>> {
                     node = parent;
                     parent = node.parent;
                 }
+                // Fall 4 (und Fortsetzung 5): Vater ist rot, Onkel ist schwarz, Knoten ist “innerer Enkel”
                 parent.color = Color.BLACK;
                 grandParent.color = Color.RED;
                 if (isLeftChild) {
