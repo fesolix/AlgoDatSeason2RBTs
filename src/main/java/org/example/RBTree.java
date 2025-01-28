@@ -38,12 +38,12 @@ public class RBTree<T extends Comparable<T>> {
         Node<T> node = root, parent = null;
         while (node != null) {
             parent = node;
-            if (newNode.value.compareTo(node.value) < 0) {
+            if (newNode.value.compareTo(node.value) < 0) { // neuer Knoten ist kleiner als der Vater -> nach links
                 node = node.left;
-            } else if (newNode.value.compareTo(node.value) > 0) {
+            } else if (newNode.value.compareTo(node.value) > 0) { // neuer Knoten ist größer als der Vater -> nach rechts
                 node = node.right;
             } else {
-                throw new IllegalArgumentException("BST already contains value: " + newNode.value);
+                throw new IllegalArgumentException("BST already contains value: " + newNode.value); // wir akzeptieren keine gleichgroßen Werte
             }
         }
 
@@ -61,10 +61,10 @@ public class RBTree<T extends Comparable<T>> {
     }
 
     private void fixRedBlackPropertiesAfterInsert(Node<T> node) {
-        while (node != root && node.parent.color == Color.RED) {
+        if (node != root && node.parent.color == Color.RED) {
             Node<T> parent = node.parent;
             Node<T> grandParent = parent.parent;
-            if (grandParent == null) break;
+            if (grandParent == null) { root.color = Color.BLACK; return;}
 
             boolean isLeftChild = (parent == grandParent.left);
             Node<T> uncle = isLeftChild ? grandParent.right : grandParent.left;
@@ -73,7 +73,7 @@ public class RBTree<T extends Comparable<T>> {
                 parent.color = Color.BLACK;
                 uncle.color = Color.BLACK;
                 grandParent.color = Color.RED;
-                node = grandParent;
+                fixRedBlackPropertiesAfterInsert(grandParent);
             } else {
                 if (isLeftChild && node == parent.right) {
                     rotateLeft(parent);
@@ -91,6 +91,7 @@ public class RBTree<T extends Comparable<T>> {
                 } else {
                     rotateLeft(grandParent);
                 }
+                fixRedBlackPropertiesAfterInsert(node);
             }
         }
         root.color = Color.BLACK;
@@ -133,29 +134,21 @@ public class RBTree<T extends Comparable<T>> {
         }
     }
 
-    private static Object[][] nodeParents = new Object[10000][4];
-    private void inorder(Node<T> n) {
-        int i = 0;
-        if (n.left != null) inorder(n.left); // solange links suchen bis keine Knoten mehr da sind
-
-
-        while (nodeParents[i][0] != null) {
-            i++;
-        }         // an die nächste neue Stelle gehen
+    private static Object[][] nodeParents = new Object[10000][2];
+    int highestIndex;
+    private void inorder(Node<T> n, int i) {
+        if (i > highestIndex) highestIndex = i;
+        if (n.left != null) inorder(n.left, 2*i+1); // solange links suchen bis keine Knoten mehr da sind, index des Kindes mitgeben
 
         nodeParents[i][0] = n.value; // Value speichern
         nodeParents[i][1] = n.color; // Color speichern
-        if (n.parent != null) nodeParents[i][2] = n.parent.value; // ElternValue speichern, wenn es nicht root ist
-        else nodeParents[i][2] = -1; // sonst -1
-        if (n.left != null && n.right == null) nodeParents[i][3] = 0;  // ein Elternteil ohne rechtes Kind (für Invis)
-        if (n.left == null && n.right != null) nodeParents[i][3] = 1; // ein Elternteil ohne linkes Kind (für Invis)
 
-        if (n.right != null) inorder(n.right); // solange rechts suchen bis keine Knoten mehr da sind
+        if (n.right != null) inorder(n.right, 2*i+2); // solange rechts suchen bis keine Knoten mehr da sind, index des Kindes mitgeben
 
     }
     public void printDOT(String file) throws IOException {
-        nodeParents = new Object[10000][4]; // Array erstmal (wieder) leeren
-
+        nodeParents = new Object[10000][2]; // Array erstmal (wieder) leeren
+        highestIndex = 0;
         // Aufbau der Datei
         String startText = "digraph G {\n" +
                 "\tgraph [ratio=.48];\n" +
@@ -176,35 +169,34 @@ public class RBTree<T extends Comparable<T>> {
 
 
         // über inOrder nodeParents befüllen
-        inorder(root);
+        inorder(root, 0);
         int i = 0;
 
         // jede Stelle durchgehen
-        while (nodeParents[i][0] != null) {
-            int parentID = 0;
-            // falls nicht root, finde das Elternteil
-            if (nodeParents[i][0] != (Object) root.value)
-            {
-                while (nodeParents[parentID][0] != null) {
-                    if (nodeParents[i][2] == nodeParents[parentID][0]) break;
-                    parentID++;
+        while (i <= highestIndex) {
+
+            if (nodeParents[((i-1)/2)][0] != null) {
+
+                // Code für Geisterknoten, damit die links-rechts-Einrückung teilweise funktioniert
+                /*
+                if (nodeParents[i][0] == null) {
+                    if (i % 2 == 1 && nodeParents[i + 1][0] != null) {
+                        leftSingleParents = leftSingleParents.concat((1000 + i) + " [label=\"\",style=invis]; \n");
+                        connectDots = connectDots.concat(((i - 1) / 2 + 1) + " -> " + (1000 + i) + " [style=invis]; \n");
+                    } else if (i % 2 == 0 && nodeParents[i - 1][0] != null) {
+                        rightSingleParents = rightSingleParents.concat((1000 + i) + " [label=\"\",style=invis]; \n");
+                        connectDots = connectDots.concat(((i - 1) / 2 + 1) + " -> " + (1000 + i) + " [style=invis]; \n");
+                    }
                 }
-            }
+                else */
 
-            // i --> Index vom Array, i+1 --> Index für Graphviz
-            if (nodeParents[i][1] == Color.RED) redDots = redDots.concat((i+1) + ", "); // falls rot, zu redDots hinzufügen
-            if (nodeParents[i][2] != (Object) (-1)) connectDots = connectDots.concat(parentID+1 + " -> " + (i+1) + "; \n"); // falls nicht die root, mit Elternteil verknüpfen
-            order = order.concat((i+1) + " [label=\"" + nodeParents[i][0] + "\"]; \n "); // zur Reihenfolge hinzufügen
-
-            // falls links kein Knoten ist, Geistknoten hinzufügen für die Struktur
-            if (nodeParents[i][3] == (Object) 1)  {
-                leftSingleParents = leftSingleParents.concat((1000+i) + " [label=\"\",style=invis]; \n");
-                connectDots = connectDots.concat(i+1 + " -> " + (1000+i) + " [style=invis]; \n");
-            }
-            // falls rechts kein Knoten ist, Geistknoten hinzufügen für die Struktur
-            else if (nodeParents[i][3] == (Object) 0) {
-                rightSingleParents = rightSingleParents.concat((1000+i) + " [label=\"\",style=invis]; \n");
-                connectDots = connectDots.concat(i+1 + " -> " + (1000+i) + " [style=invis]; \n");
+                // falls an diesem Index Knoten vorhanden
+                if (nodeParents[i][0] != null) {
+                    // i --> Index vom Array, i+1 --> Index für Graphviz
+                    if (nodeParents[i][1] == Color.RED) redDots = redDots.concat((i + 1) + ", "); // falls rot, zu redDots hinzufügen
+                    if (i != 0) connectDots = connectDots.concat((((i - 1) / 2) + 1) + " -> " + (i + 1) + "; \n"); // falls nicht die root, mit Elternteil verknüpfen
+                    order = order.concat((i + 1) + " [label=\"" + nodeParents[i][0] + "\"]; \n "); // zur Reihenfolge hinzufügen
+                }
             }
             i++;
         }
@@ -213,7 +205,7 @@ public class RBTree<T extends Comparable<T>> {
         redDots = redDots.substring(0, redDots.length()-2);
         order = order.substring(0, order.length() -2) + "\n\n";
 
-        // die Reihenfolge der String-Elemente der Datei
+        // die Reihenfolge der String-Elemente der Datei (leftSingleParents und rightSingleParents sind für die Geisterknoten)
         String input = startText.concat(leftSingleParents + order + rightSingleParents + redDots + redText + connectDots + endText);
         // falls nur die Root existiert
         if (redDots.isEmpty()) input = startText.concat("1 [label=\"" + root.value + "\"];" + endText);
