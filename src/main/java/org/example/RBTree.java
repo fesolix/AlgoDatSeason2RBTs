@@ -72,7 +72,7 @@ public class RBTree<T extends Comparable<T>> {
                 return;
             }
 
-            boolean isLeftChild = (parent == grandParent.left);
+            boolean isLeftChild = (parent == grandParent.left); // Elternteil ist linker Knoten
             Node<T> uncle = isLeftChild ? grandParent.right : grandParent.left;
 
             // Fall 3: Vater und Onkelknoten sind rot

@@ -36,7 +36,7 @@ public class Main {
         for (int i = 0; i < 15; i++) {
             int num;
             for (int j = 0; j < 1000000; j++) { // wiederhole 1 million mal, um sicherzugehen, dass ein neuer Wert gefunden wird, aber kein while(true), damit das Programm auch irgendwann abbrechen kann
-                num = rand.nextInt(100); // Zufallszahl von 1-100
+                num = rand.nextInt(200)-100; // Zufallszahl von -100 bis 100
                 if (!arrayList.contains(num)) { // falls Zahl in Liste, neue Zufallszahl ausrechnen
                     arrayList.add(num);
 
