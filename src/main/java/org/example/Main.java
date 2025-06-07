@@ -15,7 +15,6 @@ class IntComparable implements Comparable<IntComparable> {
     public int compareTo(IntComparable x) {
         return this.value - x.value;
     }
-
     @Override
     public String toString() {
         return String.valueOf(value);
@@ -48,5 +47,6 @@ public class Main {
                 }
             }
         }
+
     }
 }
